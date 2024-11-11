@@ -80,7 +80,7 @@ results = run_benchmark(model, dataset, embed=embed, metrics=metrics)
 ```
 
 ```
->> {
+{
     'embed': 'image',
     'metrics': {
         'mAP@1': 0.5,
