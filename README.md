@@ -1,5 +1,7 @@
 
-# Automatic Retrieval Benchmark
+# xRetriEval
+
+Retrieve and Evaluate with X(any) models.
 
 This project wants to make it easier to create automated text-image retrieval benchmarks.
 
@@ -68,14 +70,15 @@ Use TorchMetrics.
 Define model, dataset and metrics.
 
 ```python
+import xretrieval
 
-model = Model("clip-vit-b-32")
-dataset = Dataset("coco")
+model = xretrieval.Model("clip-vit-b-32")
+dataset = xretrieval.Dataset("coco")
 
 embed = ["image", "text", "image_text"]
 metrics = ["mAP@1", "Precision@1", "Recall@1"]
 
-results = run_benchmark(model, dataset, embed=embed, metrics=metrics)
+results = xretrieval.run_benchmark(model, dataset, embed=embed, metrics=metrics)
 
 ```
 
