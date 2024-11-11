@@ -18,14 +18,34 @@ User should be able to compute retrieval metrics on their own datasets and model
 - SBU Captions
 - ...
 
-Download COCO validation dataset
+Download COCO validation dataset images:
 
 ```bash
-mkdir -p data/coco/val2017
-cd data/coco/val2017
+mkdir -p data/coco/
+cd data/coco/
 wget http://images.cocodataset.org/zips/val2017.zip
 unzip val2017.zip
 rm val2017.zip
+```
+
+Download COCO validation annotations:
+
+```bash
+cd data/coco/
+wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+unzip annotations_trainval2017.zip
+rm annotations_trainval2017.zip
+```
+
+You should end up with the following folder structure:
+
+```
+data/coco/
+├── annotations
+│   └── captions_val2017.json
+└── val2017
+    └── 000000000000.jpg
+    └── ...
 ```
 
 ## Model
