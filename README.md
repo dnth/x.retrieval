@@ -32,3 +32,9 @@ Use TorchMetrics.
 - Precision@K
 - Recall@K
 - ...
+
+
+## References
+
+- [TorchMetrics](https://torchmetrics.readthedocs.io/en/latest/)
+- [VectorHub](https://github.com/superlinked/VectorHub/blob/main/research/vision-research/readme.md)
