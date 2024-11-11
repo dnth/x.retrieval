@@ -63,6 +63,22 @@ Use TorchMetrics.
 - Recall@K
 - ...
 
+## Usage
+
+Define model, dataset and metrics.
+
+```python
+
+model = Model("clip-vit-b-32")
+dataset = Dataset("coco")
+
+results = run_benchmark(model, dataset, metrics=["mAP@1", "Precision@1", "Recall@1"])
+
+results
+
+>> {'mAP@1': 0.5, 'Precision@1': 0.5, 'Recall@1': 0.5}
+```
+
 
 ## References
 
