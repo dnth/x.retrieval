@@ -18,6 +18,16 @@ User should be able to compute retrieval metrics on their own datasets and model
 - SBU Captions
 - ...
 
+Download COCO validation dataset
+
+```bash
+mkdir -p data/coco/val2017
+cd data/coco/val2017
+wget http://images.cocodataset.org/zips/val2017.zip
+unzip val2017.zip
+rm val2017.zip
+```
+
 ## Model
 
 - CLIP
