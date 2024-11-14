@@ -7,20 +7,20 @@ name = "xretrieval"
 version = "0.1.0"
 description = "Retrieve and Evaluate with X(any) models"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 license = "MIT"
-keywords = ["retrieval", "evaluation", "machine-learning", "deep-learning"]
+keywords = ["retrieval", "evaluation", "machine-learning", "multi-modal"]
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Dickson Neoh", email = "dickson.neoh@gmail.com" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = [
@@ -28,6 +28,7 @@ dependencies = [
     "torchvision>=0.8.2",
     "torchmetrics>=0.11.0",
     "Pillow>=8.0.0",
+    "clip @ git+https://github.com/openai/CLIP.git",
 ]
 
 [project.optional-dependencies]
