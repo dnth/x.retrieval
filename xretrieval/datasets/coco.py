@@ -1,16 +1,22 @@
 import json
 from pathlib import Path
-from typing import Literal
 
 import pandas as pd
 
+from ..registry import DatasetRegistry
 
+
+@DatasetRegistry.register("coco-val-2017", "The COCO Validation Set")
 class COCODataset:
-    def __init__(self, data_dir: str = "data/coco"):
+    def __init__(
+        self,
+        data_dir: str = "/home/dnth/Desktop/automatic-retrieval-benchmark/data/coco/",
+    ):
         self.data_dir = Path(data_dir)
         self.annotations_dir = self.data_dir / "annotations"
         self.images_dir = self.data_dir / "val2017"
 
+    # TODO: Download dataset if not in local folder
     def load_annotations(self) -> pd.DataFrame:
         """Load and process COCO annotations."""
         # Load caption and instance annotations
