@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import pandas as pd
+from loguru import logger
 
 from ..registry import DatasetRegistry
 
@@ -10,13 +11,76 @@ from ..registry import DatasetRegistry
 class COCODataset:
     def __init__(
         self,
-        data_dir: str = "/home/dnth/Desktop/automatic-retrieval-benchmark/data/coco/",
+        data_dir: str = "./data/coco/",
     ):
         self.data_dir = Path(data_dir)
         self.annotations_dir = self.data_dir / "annotations"
         self.images_dir = self.data_dir / "val2017"
 
-    # TODO: Download dataset if not in local folder
+        # Check if dataset exists, download if not
+        if not self.images_dir.exists():
+            logger.info(f"COCO validation dataset not found in {self.images_dir}")
+            logger.info("Downloading COCO validation dataset...")
+            self.download()
+        else:
+            logger.info(
+                f"COCO validation dataset found in {self.images_dir}, skipping download"
+            )
+
+    def download(self):
+        """Download and extract COCO validation dataset and annotations if not already present."""
+        import os
+        import zipfile
+
+        import requests
+        from tqdm import tqdm
+
+        def download_file(url, filename):
+            """Helper function to download a file with progress bar."""
+            response = requests.get(url, stream=True)
+            total_size = int(response.headers.get("content-length", 0))
+
+            with open(filename, "wb") as file, tqdm(
+                desc=f"Downloading {filename}",
+                total=total_size,
+                unit="iB",
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as pbar:
+                for data in response.iter_content(chunk_size=1024):
+                    size = file.write(data)
+                    pbar.update(size)
+
+        # Create directories if they don't exist
+        os.makedirs(self.data_dir, exist_ok=True)
+        os.makedirs(self.data_dir / "annotations", exist_ok=True)
+
+        # Change to the coco directory
+        os.chdir(self.data_dir)
+
+        # Download and extract validation images
+        logger.info("Downloading COCO validation dataset...")
+        download_file("http://images.cocodataset.org/zips/val2017.zip", "val2017.zip")
+
+        logger.info("Extracting images...")
+        with zipfile.ZipFile("val2017.zip", "r") as zip_ref:
+            zip_ref.extractall()
+        os.remove("val2017.zip")
+
+        # Download and extract annotations
+        logger.info("Downloading COCO annotations...")
+        download_file(
+            "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
+            "annotations_trainval2017.zip",
+        )
+
+        logger.info("Extracting annotations...")
+        with zipfile.ZipFile("annotations_trainval2017.zip", "r") as zip_ref:
+            zip_ref.extractall()
+        os.remove("annotations_trainval2017.zip")
+
+        logger.info("Download and extraction complete!")
+
     def load_annotations(self) -> pd.DataFrame:
         """Load and process COCO annotations."""
         # Load caption and instance annotations
