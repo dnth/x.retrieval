@@ -56,6 +56,14 @@ class ModelRegistry:
         return model_info.model_class
 
     @classmethod
+    def get_model_info(cls, model_id: str) -> ModelInfo:
+        """Retrieve a model info by name."""
+        if model_id not in cls._models:
+            raise KeyError(f"Model '{model_id}' not found in registry")
+
+        return cls._models[model_id]
+
+    @classmethod
     def list(cls) -> dict[str, str]:
         """List all registered models with their types.
 

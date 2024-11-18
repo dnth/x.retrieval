@@ -53,6 +53,9 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
     dataset = load_dataset(dataset_name)
     model = load_model(model_id)
 
+    model_info = ModelRegistry.get_model_info(model_id)
+    print(model_info)
+
     image_ids = dataset.image_id.tolist()
 
     image_ids = np.array(image_ids)
