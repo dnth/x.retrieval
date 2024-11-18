@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 from loguru import logger
 
-from ..registry import DatasetRegistry
+from ..datasets_registry import DatasetRegistry
 
 
 @DatasetRegistry.register("coco-val-2017", "The COCO Validation Set")
