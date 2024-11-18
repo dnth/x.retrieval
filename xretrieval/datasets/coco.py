@@ -51,35 +51,45 @@ class COCODataset:
                     size = file.write(data)
                     pbar.update(size)
 
-        # Create directories if they don't exist
-        os.makedirs(self.data_dir, exist_ok=True)
-        os.makedirs(self.data_dir / "annotations", exist_ok=True)
+        # Store the original working directory
+        original_dir = os.getcwd()
 
-        # Change to the coco directory
-        os.chdir(self.data_dir)
+        try:
+            # Create directories if they don't exist
+            os.makedirs(self.data_dir, exist_ok=True)
+            os.makedirs(self.data_dir / "annotations", exist_ok=True)
 
-        # Download and extract validation images
-        logger.info("Downloading COCO validation dataset...")
-        download_file("http://images.cocodataset.org/zips/val2017.zip", "val2017.zip")
+            # Change to the coco directory
+            os.chdir(self.data_dir)
 
-        logger.info("Extracting images...")
-        with zipfile.ZipFile("val2017.zip", "r") as zip_ref:
-            zip_ref.extractall()
-        os.remove("val2017.zip")
+            # Download and extract validation images
+            logger.info("Downloading COCO validation dataset...")
+            download_file(
+                "http://images.cocodataset.org/zips/val2017.zip", "val2017.zip"
+            )
 
-        # Download and extract annotations
-        logger.info("Downloading COCO annotations...")
-        download_file(
-            "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
-            "annotations_trainval2017.zip",
-        )
+            logger.info("Extracting images...")
+            with zipfile.ZipFile("val2017.zip", "r") as zip_ref:
+                zip_ref.extractall()
+            os.remove("val2017.zip")
 
-        logger.info("Extracting annotations...")
-        with zipfile.ZipFile("annotations_trainval2017.zip", "r") as zip_ref:
-            zip_ref.extractall()
-        os.remove("annotations_trainval2017.zip")
+            # Download and extract annotations
+            logger.info("Downloading COCO annotations...")
+            download_file(
+                "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
+                "annotations_trainval2017.zip",
+            )
 
-        logger.info("Download and extraction complete!")
+            logger.info("Extracting annotations...")
+            with zipfile.ZipFile("annotations_trainval2017.zip", "r") as zip_ref:
+                zip_ref.extractall()
+            os.remove("annotations_trainval2017.zip")
+
+            logger.info("Download and extraction complete!")
+
+        finally:
+            # Always restore the original working directory
+            os.chdir(original_dir)
 
     def load_annotations(self) -> pd.DataFrame:
         """Load and process COCO annotations."""

@@ -21,13 +21,11 @@ class DatasetRegistry:
     _datasets: dict[str, DatasetInfo] = {}
 
     @classmethod
-    def register(
-        cls, name: str | None = None, description: str = ""
-    ) -> DecoratorFunction:
+    def register(cls, name: str, description: str = "") -> DecoratorFunction:
         """Decorator to register a dataset.
 
         Args:
-            name: Optional name for the dataset. If not provided, uses class name
+            name: Name for the dataset
             description: Optional description of the dataset
 
         Returns:
@@ -35,12 +33,11 @@ class DatasetRegistry:
         """
 
         def decorator(dataset_class: DatasetType) -> DatasetType:
-            dataset_name = name or dataset_class.__name__
-            if dataset_name in cls._datasets:
-                raise ValueError(f"Dataset '{dataset_name}' is already registered")
+            if name in cls._datasets:
+                raise ValueError(f"Dataset '{name}' is already registered")
 
-            cls._datasets[dataset_name] = DatasetInfo(
-                name=dataset_name, dataset_class=dataset_class, description=description
+            cls._datasets[name] = DatasetInfo(
+                name=name, dataset_class=dataset_class, description=description
             )
             return dataset_class
 
