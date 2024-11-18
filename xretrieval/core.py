@@ -1,3 +1,5 @@
+from loguru import logger
+
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
 
@@ -90,4 +92,6 @@ def run_benchmark(dataset_name: str, model_id: str):
         score = round(metr(targets, matches, indexes).item(), 4)
         metr_name = metr.__class__.__name__.replace("Retrieval", "")
         results[metr_name] = score
-        print(f"{metr_name}: {score}")
+        logger.info(f"{metr_name}: {score}")
+
+    return results
