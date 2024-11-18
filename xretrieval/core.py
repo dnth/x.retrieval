@@ -2,6 +2,8 @@ import faiss
 import numpy as np
 import torch
 import torchmetrics
+from rich.console import Console
+from rich.table import Table
 
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
@@ -13,10 +15,28 @@ def list_datasets(search: str = ""):
     return [ds for ds in DatasetRegistry.list() if search in ds.lower()]
 
 
-def list_models(search: str = ""):
+def list_models(search: str = "") -> dict:
     # Convert wildcard pattern to simple regex-like matching
     search = search.replace("*", "").lower()
-    return [model for model in ModelRegistry.list() if search in model.lower()]
+    # Get filtered models
+    models = {
+        model_id: model_input
+        for model_id, model_input in ModelRegistry.list().items()
+        if search in model_id.lower()
+    }
+
+    # Create and print table
+    table = Table(title="Available Models")
+    table.add_column("Model ID", style="cyan")
+    table.add_column("Model Input", style="magenta")
+
+    for model_id, input_type in models.items():
+        table.add_row(model_id, input_type)
+
+    console = Console()
+    console.print(table)
+
+    # return models
 
 
 def load_dataset(name: str):

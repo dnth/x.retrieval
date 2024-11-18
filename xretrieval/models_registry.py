@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Type
+from typing import Any, Callable, Literal, Type
 
 # Type aliases for clarity
 ModelType = Type[Any]  # Type of the model class
@@ -12,6 +12,7 @@ class ModelInfo:
 
     model_id: str
     model_class: ModelType
+    model_input: Literal["text", "image", "multi-modal"]
 
 
 class ModelRegistry:
@@ -20,7 +21,9 @@ class ModelRegistry:
     _models: dict[str, ModelInfo] = {}
 
     @classmethod
-    def register(cls, model_id: str) -> DecoratorFunction:
+    def register(
+        cls, model_id: str, model_type: Literal["text", "image", "multi-modal"]
+    ) -> DecoratorFunction:
         """Decorator to register a model.
 
         Args:
@@ -37,6 +40,7 @@ class ModelRegistry:
             cls._models[model_id] = ModelInfo(
                 model_id=model_id,
                 model_class=model_class,
+                model_input=model_type,
             )
             return model_class
 
@@ -52,6 +56,10 @@ class ModelRegistry:
         return model_info.model_class
 
     @classmethod
-    def list(cls) -> dict[str, ModelInfo]:
-        """List all registered models."""
-        return cls._models.copy()
+    def list(cls) -> dict[str, str]:
+        """List all registered models with their types.
+
+        Returns:
+            A dictionary mapping model IDs to their types (text/image/multi-modal)
+        """
+        return {model_id: info.model_input for model_id, info in cls._models.items()}
