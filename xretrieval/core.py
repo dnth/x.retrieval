@@ -1,4 +1,7 @@
-from loguru import logger
+import faiss
+import numpy as np
+import torch
+import torchmetrics
 
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
@@ -32,14 +35,10 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
 
     image_ids = dataset.image_id.tolist()
 
-    import numpy as np
-
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
     embeddings = model.encode_text(dataset.caption.tolist())
-
-    import faiss
 
     index = faiss.IndexIDMap(faiss.IndexFlatIP(embeddings.shape[1]))
     faiss.normalize_L2(embeddings)
@@ -64,8 +63,6 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
 
     matches = np.expand_dims(labels, axis=1) == labels[filtered_retrieved_ids]
 
-    import torch
-
     matches = torch.tensor(np.array(matches), dtype=torch.float16)
     targets = torch.ones(matches.shape)
 
@@ -73,8 +70,6 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
         torch.arange(matches.shape[0]).view(-1, 1)
         * torch.ones(1, matches.shape[1]).long()
     )
-
-    import torchmetrics
 
     metrics = [
         torchmetrics.retrieval.RetrievalMRR(),
