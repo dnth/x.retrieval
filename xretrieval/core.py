@@ -21,7 +21,7 @@ def load_dataset(name: str):
 
 def load_model(model_id: str):
     model_class = ModelRegistry.get(model_id)
-    return model_class(model_id=model_id).load_model()
+    return model_class(model_id=model_id)
 
 
 def run_benchmark(dataset_name: str, model_id: str):
@@ -35,7 +35,7 @@ def run_benchmark(dataset_name: str, model_id: str):
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
-    embeddings = model.encode(dataset.caption)
+    embeddings = model.encode_text(dataset.caption.tolist())
 
     import faiss
 
