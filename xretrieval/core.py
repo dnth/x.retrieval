@@ -26,7 +26,7 @@ def load_model(model_id: str):
     return model_class(model_id=model_id)
 
 
-def run_benchmark(dataset_name: str, model_id: str):
+def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
     dataset = load_dataset(dataset_name)
     model = load_model(model_id)
 
@@ -45,12 +45,10 @@ def run_benchmark(dataset_name: str, model_id: str):
     faiss.normalize_L2(embeddings)
     index.add_with_ids(embeddings, np.arange(len(embeddings)))
 
-    _, retrieved_ids = index.search(embeddings, k=10)
+    _, retrieved_ids = index.search(embeddings, k=top_k)
 
     # Remove self matches
     from tqdm.auto import tqdm
-
-    top_k = 10
 
     filtered_retrieved_ids = []
 
@@ -92,6 +90,6 @@ def run_benchmark(dataset_name: str, model_id: str):
         score = round(metr(targets, matches, indexes).item(), 4)
         metr_name = metr.__class__.__name__.replace("Retrieval", "")
         results[metr_name] = score
-        logger.info(f"{metr_name}: {score}")
+        # logger.info(f"{metr_name}: {score}")
 
     return results
