@@ -2,6 +2,7 @@ import faiss
 import numpy as np
 import torch
 import torchmetrics
+from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
@@ -54,14 +55,16 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
     model = load_model(model_id)
 
     model_info = ModelRegistry.get_model_info(model_id)
-    print(model_info)
 
     image_ids = dataset.image_id.tolist()
 
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
-    embeddings = model.encode_text(dataset.caption.tolist())
+    if model_info.model_input == "text":
+        encode_column = "caption"
+        logger.info(f"Encoding text for {model_id} on column `{encode_column}`")
+        embeddings = model.encode_text(dataset[encode_column].tolist())
 
     index = faiss.IndexIDMap(faiss.IndexFlatIP(embeddings.shape[1]))
     faiss.normalize_L2(embeddings)
