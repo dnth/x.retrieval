@@ -22,7 +22,7 @@ class ModelRegistry:
 
     @classmethod
     def register(
-        cls, model_id: str, model_type: Literal["text", "image", "multi-modal"]
+        cls, model_id: str, model_type: Literal["text", "image", "text-image"]
     ) -> DecoratorFunction:
         """Decorator to register a model.
 
