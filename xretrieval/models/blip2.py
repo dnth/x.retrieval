@@ -9,7 +9,7 @@ from xretrieval.models_registry import ModelRegistry
 
 @ModelRegistry.register(
     "transformers/Salesforce/blip2-itm-vit-g",
-    model_type="text",
+    model_input="text",
 )
 class BLIP2TextModel(TextModel):
     def __init__(self, model_id: str):

@@ -4,24 +4,26 @@ from xretrieval.models.base import TextModel
 from xretrieval.models_registry import ModelRegistry
 
 
-@ModelRegistry.register("sentence-transformers/all-MiniLM-L6-v2", model_type="text")
+@ModelRegistry.register("sentence-transformers/all-MiniLM-L6-v2", model_input="text")
 @ModelRegistry.register(
-    "sentence-transformers/multi-qa-MiniLM-L6-cos-v1", model_type="text"
+    "sentence-transformers/multi-qa-MiniLM-L6-cos-v1", model_input="text"
 )
-@ModelRegistry.register("sentence-transformers/all-mpnet-base-v2", model_type="text")
+@ModelRegistry.register("sentence-transformers/all-mpnet-base-v2", model_input="text")
 @ModelRegistry.register(
-    "sentence-transformers/multi-qa-mpnet-base-dot-v1", model_type="text"
-)
-@ModelRegistry.register("sentence-transformers/all-distilroberta-v1", model_type="text")
-@ModelRegistry.register("sentence-transformers/all-MiniLM-L12-v2", model_type="text")
-@ModelRegistry.register(
-    "sentence-transformers/multi-qa-distilbert-cos-v1", model_type="text"
+    "sentence-transformers/multi-qa-mpnet-base-dot-v1", model_input="text"
 )
 @ModelRegistry.register(
-    "sentence-transformers/paraphrase-albert-small-v2", model_type="text"
+    "sentence-transformers/all-distilroberta-v1", model_input="text"
+)
+@ModelRegistry.register("sentence-transformers/all-MiniLM-L12-v2", model_input="text")
+@ModelRegistry.register(
+    "sentence-transformers/multi-qa-distilbert-cos-v1", model_input="text"
 )
 @ModelRegistry.register(
-    "sentence-transformers/paraphrase-MiniLM-L3-v2", model_type="text"
+    "sentence-transformers/paraphrase-albert-small-v2", model_input="text"
+)
+@ModelRegistry.register(
+    "sentence-transformers/paraphrase-MiniLM-L3-v2", model_input="text"
 )
 class SentenceTransformerModel(TextModel):
     def __init__(self, model_id: str):

@@ -8,7 +8,7 @@ from xretrieval.models.base import ImageModel
 from xretrieval.models_registry import ModelRegistry
 
 
-@ModelRegistry.register("timm/resnet18.a1_in1k", model_type="image")
+@ModelRegistry.register("timm/resnet18.a1_in1k", model_input="image")
 class TimmModel(ImageModel):
     def __init__(self, model_id: str):
         self.model_id = model_id

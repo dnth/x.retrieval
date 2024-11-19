@@ -22,7 +22,7 @@ class ModelRegistry:
 
     @classmethod
     def register(
-        cls, model_id: str, model_type: Literal["text", "image", "text-image"]
+        cls, model_id: str, model_input: Literal["text", "image", "text-image"]
     ) -> DecoratorFunction:
         """Decorator to register a model.
 
@@ -40,7 +40,7 @@ class ModelRegistry:
             cls._models[model_id] = ModelInfo(
                 model_id=model_id,
                 model_class=model_class,
-                model_input=model_type,
+                model_input=model_input,
             )
             return model_class
 
