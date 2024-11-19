@@ -65,6 +65,10 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
         encode_column = "caption"
         logger.info(f"Encoding text for {model_id} on column `{encode_column}`")
         embeddings = model.encode_text(dataset[encode_column].tolist())
+    elif model_info.model_input == "image":
+        encode_column = "image_path"
+        logger.info(f"Encoding image for {model_id} on column `{encode_column}`")
+        embeddings = model.encode_image(dataset[encode_column].tolist())
 
     index = faiss.IndexIDMap(faiss.IndexFlatIP(embeddings.shape[1]))
     faiss.normalize_L2(embeddings)
