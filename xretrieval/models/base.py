@@ -10,10 +10,6 @@ class MultiModalModel(ABC):
         self.model_id = model_id
 
     @abstractmethod
-    def load_model(self):
-        pass
-
-    @abstractmethod
     def encode_image(self, image_path: str):
         pass
 

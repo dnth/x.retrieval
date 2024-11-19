@@ -1,5 +1,11 @@
-from .blip2 import BLIP2TextModel
+from .blip2 import BLIP2ImageModel, BLIP2Model, BLIP2TextModel
 from .sentence_transformers import SentenceTransformerModel
 from .timm import TimmModel
 
-__all__ = ["SentenceTransformerModel", "TimmModel", "BLIP2TextModel"]
+__all__ = [
+    "SentenceTransformerModel",
+    "TimmModel",
+    "BLIP2Model",
+    "BLIP2TextModel",
+    "BLIP2ImageModel",
+]
