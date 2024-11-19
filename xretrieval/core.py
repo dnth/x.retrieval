@@ -5,6 +5,7 @@ import torchmetrics
 from loguru import logger
 from rich.console import Console
 from rich.table import Table
+from tqdm.auto import tqdm
 
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
@@ -77,8 +78,6 @@ def run_benchmark(dataset_name: str, model_id: str, top_k: int = 10):
     _, retrieved_ids = index.search(embeddings, k=top_k)
 
     # Remove self matches
-    from tqdm.auto import tqdm
-
     filtered_retrieved_ids = []
 
     for idx, row in enumerate(tqdm(retrieved_ids)):
