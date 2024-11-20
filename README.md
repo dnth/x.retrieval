@@ -3,18 +3,16 @@
 
 # x.retrieval
 
-Retrieve and evaluate with X (any) models.
+Evaluate your multimodal retrieval system with any models and datasets.
 
-This project simplifies automated text-image retrieval benchmarks.
 
-Inputs:
+Specific inputs:
 
 - A dataset
 - A model
 - A mode (e.g. `image-to-image`)
 
-
-Outputs:
+Get evaluation metrics:
 
 - A retrieval results dataframe
 - A retrieval metrics dataframe
