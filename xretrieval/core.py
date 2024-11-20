@@ -1,6 +1,7 @@
 import faiss
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
 import torchmetrics
 from loguru import logger
@@ -43,7 +44,9 @@ def list_models(search: str = "") -> dict:
     # return models
 
 
-def load_dataset(name: str):
+def load_dataset(name: str | pd.DataFrame):
+    if isinstance(name, pd.DataFrame):
+        return name
     dataset_class = DatasetRegistry.get(name)
     return dataset_class.get_dataset()
 
@@ -54,7 +57,7 @@ def load_model(model_id: str):
 
 
 def run_benchmark(
-    dataset_name: str,
+    dataset: str | pd.DataFrame,
     model_id: str,
     mode: str = "image-to-image",  # Can be "image-to-image", "text-to-text", "text-to-image", or "image-to-text"
     top_k: int = 10,
@@ -63,12 +66,12 @@ def run_benchmark(
     Run retrieval benchmark on a dataset
 
     Args:
-        dataset_name: Name of the dataset to use
+        dataset_name: Name of the dataset to use or a pandas DataFrame containing the dataset
         model_id: ID of the model to use
         mode: Type of retrieval ("image-to-image", "text-to-text", "text-to-image", or "image-to-text")
         top_k: Number of top results to retrieve
     """
-    dataset = load_dataset(dataset_name)
+    dataset = load_dataset(dataset)
     model = load_model(model_id)
     model_info = ModelRegistry.get_model_info(model_id)
 
@@ -121,12 +124,12 @@ def run_benchmark(
     )
 
     metrics = [
-        torchmetrics.retrieval.RetrievalMRR(),
-        torchmetrics.retrieval.RetrievalNormalizedDCG(),
-        torchmetrics.retrieval.RetrievalPrecision(),
-        torchmetrics.retrieval.RetrievalRecall(),
-        torchmetrics.retrieval.RetrievalHitRate(),
-        torchmetrics.retrieval.RetrievalMAP(),
+        torchmetrics.retrieval.RetrievalMRR(top_k=top_k),
+        torchmetrics.retrieval.RetrievalNormalizedDCG(top_k=top_k),
+        torchmetrics.retrieval.RetrievalPrecision(top_k=top_k),
+        torchmetrics.retrieval.RetrievalRecall(top_k=top_k),
+        torchmetrics.retrieval.RetrievalHitRate(top_k=top_k),
+        torchmetrics.retrieval.RetrievalMAP(top_k=top_k),
     ]
     results = {}
 
@@ -139,7 +142,7 @@ def run_benchmark(
 
 
 def visualize_retrieval(
-    dataset_name: str,
+    dataset_name: str | pd.DataFrame,
     model_id: str,
     mode: str = "image-to-image",  # Can be "image-to-image", "text-to-text", "text-to-image", or "image-to-text"
     num_queries: int = 5,
@@ -149,7 +152,7 @@ def visualize_retrieval(
     Visualize retrieval results for random queries from the dataset
 
     Args:
-        dataset_name: Name of the dataset to use
+        dataset_name: Name of the dataset to use or a pandas DataFrame containing the dataset
         model_id: ID of the model to use
         mode: Type of retrieval to perform
         num_queries: Number of random queries to visualize
