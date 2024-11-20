@@ -24,6 +24,8 @@ Outputs:
 - ✅ Run benchmarks with one function call.
 
 ## 🚀 Quickstart
+[![Open In Colab][colab_badge]](https://colab.research.google.com/github/dnth/x.retrieval/blob/main/nbs/quickstart.ipynb)
+[![Open In Kaggle][kaggle_badge]](https://kaggle.com/kernels/welcome?src=https://github.com/dnth/x.retrieval/blob/main/nbs/quickstart.ipynb)
 
 ```python
 import xretrieval
