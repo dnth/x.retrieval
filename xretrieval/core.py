@@ -177,105 +177,78 @@ def run_benchmark(
 
 
 def visualize_retrieval(
-    dataset_name: str | pd.DataFrame,
-    model_id: str,
-    mode: str = "image-to-image",  # Can be "image-to-image", "text-to-text", "text-to-image", or "image-to-text"
+    results_df: pd.DataFrame,
+    mode: str | None = None,  # Changed default to None
     num_queries: int = 5,
-    top_k: int = 5,
 ):
     """
-    Visualize retrieval results for random queries from the dataset
+    Visualize retrieval results from the benchmark results DataFrame
 
     Args:
-        dataset_name: Name of the dataset to use or a pandas DataFrame containing the dataset
-        model_id: ID of the model to use
-        mode: Type of retrieval to perform
+        results_df: DataFrame containing retrieval results from run_benchmark
+        mode: Type of retrieval ("image-to-image", "text-to-text", "text-to-image", "image-to-text")
+              If None, shows both image and caption for queries and results
         num_queries: Number of random queries to visualize
-        top_k: Number of top results to show for each query
     """
-    dataset = load_dataset(dataset_name)
-    model = load_model(model_id)
-    model_info = ModelRegistry.get_model_info(model_id)
-
-    # Encode database items (what we're searching through)
-    if mode.endswith("image"):  # text-to-image or image-to-image
-        db_embeddings = model.encode_image(dataset["image_path"].tolist())
-    else:  # text-to-text or image-to-text
-        db_embeddings = model.encode_text(dataset["caption"].tolist())
-
-    # Create FAISS index for database embeddings
-    index = faiss.IndexIDMap(faiss.IndexFlatIP(db_embeddings.shape[1]))
-    faiss.normalize_L2(db_embeddings)
-    index.add_with_ids(db_embeddings, np.arange(len(db_embeddings)))
-
     # Select random queries
-    query_indices = np.random.choice(len(dataset), num_queries, replace=False)
+    query_indices = np.random.choice(len(results_df), num_queries, replace=False)
 
     for query_idx in query_indices:
-        # Encode query based on mode
-        if mode.startswith("image"):  # image-to-image or image-to-text
-            query_embedding = model.encode_image(
-                [dataset.iloc[query_idx]["image_path"]]
-            )
-        else:  # text-to-text or text-to-image
-            query_embedding = model.encode_text([dataset.iloc[query_idx]["caption"]])
+        query_row = results_df.iloc[query_idx]
+        retrieved_paths = query_row["retrieved_paths"]
+        retrieved_captions = query_row["retrieved_captions"]
+        top_k = len(retrieved_paths)
 
-        # Search
-        _, retrieved_ids = index.search(query_embedding, k=top_k + 1)
+        plt.figure(figsize=(20, 8))
 
-        # Remove self match if same modality
-        retrieved_ids = retrieved_ids[0]
-        if mode == "image-to-image":
-            retrieved_ids = [id for id in retrieved_ids if id != query_idx][:top_k]
-        else:
-            retrieved_ids = retrieved_ids[:top_k]
-
-        # Visualization
-        plt.figure(figsize=(15, 3))
-
-        # Plot query
-        plt.subplot(1, top_k + 1, 1)
-        if mode.startswith("image"):
-            query_img = Image.open(dataset.iloc[query_idx]["image_path"])
+        # Query visualization
+        plt.subplot(2, 1, 1)
+        if mode is None or mode.startswith("image"):
+            query_img = Image.open(query_row["query_path"])
             plt.imshow(query_img)
-            plt.title(
-                f'Query Image\n{dataset.iloc[query_idx]["caption"][:50]}...', fontsize=8
-            )
-        else:  # text-to-text or text-to-image
+            # Show caption below image if mode is None
+            if mode is None:
+                plt.title(f'Query\n{query_row["query_caption"][:100]}...', fontsize=10)
+            else:
+                plt.title("Query Image", fontsize=10)
+        else:  # text-only mode
             plt.text(
                 0.5,
                 0.5,
-                dataset.iloc[query_idx]["caption"],
-                ha="center",
-                va="center",
+                query_row["query_caption"],
+                horizontalalignment="center",
+                verticalalignment="center",
                 wrap=True,
-                fontsize=8,
+                fontsize=12,
             )
-            plt.title("Query Text", fontsize=8)
+            plt.title("Query Text", fontsize=10)
         plt.axis("off")
 
-        # Plot retrieved results
-        for i, retrieved_id in enumerate(retrieved_ids):
-            plt.subplot(1, top_k + 1, i + 2)
-            if mode.endswith("image"):  # retrieving images
-                retrieved_img = Image.open(dataset.iloc[retrieved_id]["image_path"])
+        # Retrieved results visualization
+        for i in range(top_k):
+            plt.subplot(2, top_k, top_k + i + 1)
+            if mode is None or mode.endswith("image"):
+                retrieved_img = Image.open(retrieved_paths[i])
                 plt.imshow(retrieved_img)
-                plt.title(
-                    f'Match {i+1}\n{dataset.iloc[retrieved_id]["caption"][:50]}...',
-                    fontsize=8,
-                )
-            else:  # retrieving text
+                # Show caption below image if mode is None
+                if mode is None:
+                    plt.title(
+                        f"Match {i+1}\n{retrieved_captions[i][:50]}...", fontsize=8
+                    )
+                else:
+                    plt.title(f"Match {i+1}", fontsize=8)
+            else:  # text-only mode
                 plt.text(
                     0.5,
                     0.5,
-                    dataset.iloc[retrieved_id]["caption"],
-                    ha="center",
-                    va="center",
+                    retrieved_captions[i],
+                    horizontalalignment="center",
+                    verticalalignment="center",
                     wrap=True,
                     fontsize=8,
                 )
                 plt.title(f"Match {i+1}", fontsize=8)
             plt.axis("off")
 
-        plt.tight_layout()
+        plt.tight_layout(h_pad=2, w_pad=1)
         plt.show()
