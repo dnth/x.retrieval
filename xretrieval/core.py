@@ -17,7 +17,23 @@ from .models_registry import ModelRegistry
 def list_datasets(search: str = ""):
     # Convert wildcard pattern to simple regex-like matching
     search = search.replace("*", "").lower()
-    return [ds for ds in DatasetRegistry.list() if search in ds.lower()]
+    datasets_dict = DatasetRegistry.list()
+    filtered_datasets = {
+        name: desc for name, desc in datasets_dict.items() if search in name.lower()
+    }
+
+    # Create and print table
+    table = Table(title="Available Datasets")
+    table.add_column("Dataset Name", style="cyan")
+    table.add_column("Description", style="magenta")
+
+    for name, description in filtered_datasets.items():
+        table.add_row(name, description or "No description available")
+
+    console = Console()
+    console.print(table)
+
+    # return datasets
 
 
 def list_models(search: str = "") -> dict:
@@ -72,6 +88,7 @@ def run_benchmark(
         top_k: Number of top results to retrieve
     """
     dataset = load_dataset(dataset)
+    # TODO: Dataset should contain columns ['image_id', 'file_name', 'image_path', 'caption', 'name']
     model = load_model(model_id)
     model_info = ModelRegistry.get_model_info(model_id)
 

@@ -7,7 +7,7 @@ from loguru import logger
 from ..datasets_registry import DatasetRegistry
 
 
-@DatasetRegistry.register("coco-val-2017", "The COCO Validation Set")
+@DatasetRegistry.register("coco-val-2017", "The COCO Validation Set with 5k images.")
 class COCODataset:
     def __init__(
         self,

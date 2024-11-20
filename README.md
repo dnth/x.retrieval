@@ -78,7 +78,7 @@ xretrieval.list_models()
 
 Models:
 
-```
+```bash
                          Available Models                         
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
 ┃ Model ID                                         ┃ Model Input ┃
@@ -101,4 +101,11 @@ Models:
 
 Datasets:
 
-- `coco-val-2017`
+```bash
+                    Available Datasets                     
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Dataset Name  ┃ Description                             ┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ coco-val-2017 │ The COCO Validation Set with 5k images. │
+└───────────────┴─────────────────────────────────────────┘
+```

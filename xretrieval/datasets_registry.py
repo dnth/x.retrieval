@@ -52,5 +52,5 @@ class DatasetRegistry:
 
     @classmethod
     def list(cls) -> dict[str, DatasetInfo]:
-        """List all registered datasets."""
-        return cls._datasets.copy()
+        """List all registered datasets with their descriptions."""
+        return {name: info.description for name, info in cls._datasets.items()}
