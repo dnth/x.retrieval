@@ -1,112 +1,99 @@
 
-# xRetriEval
+# x.retrieval
 
-Retrieve and Evaluate with X(any) models.
+Retrieve and evaluate with X (any) models.
 
-This project wants to make it easier to create automated text-image retrieval benchmarks.
+This project simplifies automated text-image retrieval benchmarks.
 
-User should be able to compute retrieval metrics on their own datasets and models.
+Inputs:
 
-- Input - Dataset, Model
-- Output - Metrics (mAP, Precision@K, Recall@K, etc.)
-
-## Dataset
-
-- COCO
-- Flickr30k
-- MSCOCO
-- ECCV Captions
-- Conceptual Captions
-- SBU Captions
-- ...
-
-Download COCO validation dataset images:
-
-```bash
-mkdir -p data/coco/
-cd data/coco/
-wget http://images.cocodataset.org/zips/val2017.zip
-unzip val2017.zip
-rm val2017.zip
-```
-
-Download COCO validation annotations:
-
-```bash
-cd data/coco/
-wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
-unzip annotations_trainval2017.zip
-rm annotations_trainval2017.zip
-```
-
-You should end up with the following folder structure:
-
-```
-data/coco/
-├── annotations
-│   └── captions_val2017.json
-└── val2017
-    └── 000000000000.jpg
-    └── ...
-```
-
-## Model
-
-- CLIP
-- BLIP
-- ...
+- A dataset
+- A model
+- A mode (e.g. `image-to-image`)
 
 
-## Metrics
-Use TorchMetrics.
+Outputs:
 
-- mAP
-- Precision@K
-- Recall@K
-- ...
+- A retrieval results dataframe
+- A retrieval metrics dataframe
 
-## Usage
+## 🌟 Key Features
 
-Define model, dataset and metrics.
+- ✅ Supports a wide range of models and datasets.
+- ✅ Installation in one line.
+- ✅ Run benchmarks with one function call.
+
+## 🚀 Quickstart
 
 ```python
 import xretrieval
 
-model = xretrieval.Model("clip-vit-b-32")
-dataset = xretrieval.Dataset("coco")
-
-embed = ["image", "text", "image_text"]
-metrics = ["mAP@1", "Precision@1", "Recall@1"]
-
-results = xretrieval.run_benchmark(model, dataset, embed=embed, metrics=metrics)
-
+xretrieval.run_benchmark(
+    dataset_name="coco-val-2017",
+    model_id="transformers/Salesforce/blip2-itm-vit-g",
+    mode="text-to-text",
+)
 ```
 
-```
+Output:
+
+```bash
 {
-    'embed': 'image',
-    'metrics': {
-        'mAP@1': 0.5,
-        'Precision@1': 0.5,
-        'Recall@1': 0.5
-    },
-    'embed': 'text',
-    'metrics': {
-        'mAP@1': 0.5,
-        'Precision@1': 0.5,
-        'Recall@1': 0.5
-    },
-    'embed': 'image_text',
-    'metrics': {
-        'mAP@1': 0.5,
-        'Precision@1': 0.5,
-        'Recall@1': 0.5
-    }
+    'MRR': 0.2953,
+    'NormalizedDCG': 0.3469,
+    'Precision': 0.2226,
+    'Recall': 0.4864,
+    'HitRate': 0.4864,
+    'MAP': 0.2728
 }
+
 ```
 
+## 📦 Installation
 
-## References
+```bash
+pip install xretrieval
+```
 
-- [TorchMetrics](https://torchmetrics.readthedocs.io/en/latest/)
-- [VectorHub](https://github.com/superlinked/VectorHub/blob/main/research/vision-research/readme.md)
+## 🛠️ Usage
+
+List datasets:
+
+```python
+xretrieval.list_datasets()
+```
+
+List models:
+
+```python
+xretrieval.list_models()
+```
+
+## 🧰 Supported Models and Datasets
+
+Models:
+
+```
+                         Available Models                         
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ Model ID                                         ┃ Model Input ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ transformers/Salesforce/blip2-itm-vit-g          │ text-image  │
+│ transformers/Salesforce/blip2-itm-vit-g-text     │ text        │
+│ transformers/Salesforce/blip2-itm-vit-g-image    │ image       │
+│ sentence-transformers/paraphrase-MiniLM-L3-v2    │ text        │
+│ sentence-transformers/paraphrase-albert-small-v2 │ text        │
+│ sentence-transformers/multi-qa-distilbert-cos-v1 │ text        │
+│ sentence-transformers/all-MiniLM-L12-v2          │ text        │
+│ sentence-transformers/all-distilroberta-v1       │ text        │
+│ sentence-transformers/multi-qa-mpnet-base-dot-v1 │ text        │
+│ sentence-transformers/all-mpnet-base-v2          │ text        │
+│ sentence-transformers/multi-qa-MiniLM-L6-cos-v1  │ text        │
+│ sentence-transformers/all-MiniLM-L6-v2           │ text        │
+│ timm/resnet18.a1_in1k                            │ image       │
+└──────────────────────────────────────────────────┴─────────────┘
+```
+
+Datasets:
+
+- `coco-val-2017`
