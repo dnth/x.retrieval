@@ -1,3 +1,5 @@
+[colab_badge]: https://img.shields.io/badge/Open%20In-Colab-blue?style=for-the-badge&logo=google-colab
+[kaggle_badge]: https://img.shields.io/badge/Open%20In-Kaggle-blue?style=for-the-badge&logo=kaggle
 
 # x.retrieval
 
@@ -24,6 +26,7 @@ Outputs:
 - ✅ Run benchmarks with one function call.
 
 ## 🚀 Quickstart
+
 [![Open In Colab][colab_badge]](https://colab.research.google.com/github/dnth/x.retrieval/blob/main/nbs/quickstart.ipynb)
 [![Open In Kaggle][kaggle_badge]](https://kaggle.com/kernels/welcome?src=https://github.com/dnth/x.retrieval/blob/main/nbs/quickstart.ipynb)
 
