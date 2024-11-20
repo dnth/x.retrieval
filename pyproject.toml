@@ -40,8 +40,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/xretrieval"
-"Bug Tracker" = "https://github.com/yourusername/xretrieval/issues"
+"Homepage" = "https://github.com/dnth/x.retrieval"
+"Bug Tracker" = "https://github.com/dnth/x.retrieval/issues"
 
 [tool.black]
 line-length = 88
