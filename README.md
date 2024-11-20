@@ -31,14 +31,15 @@ Get evaluation metrics:
 ```python
 import xretrieval
 
-xretrieval.run_benchmark(
-    dataset_name="coco-val-2017",
+metrics, results_df = xretrieval.run_benchmark(
+    dataset="coco-val-2017",
     model_id="transformers/Salesforce/blip2-itm-vit-g",
     mode="text-to-text",
 )
+
+metrics
 ```
 
-Output:
 
 ```bash
 {

@@ -131,6 +131,24 @@ def run_benchmark(
             filtered_retrieved_ids.append(filtered_row)
         retrieved_ids = np.array(filtered_retrieved_ids)
 
+    # Create results DataFrame
+    results_data = []
+    for idx, retrieved in enumerate(retrieved_ids):
+        query_row = {
+            "query_id": dataset.iloc[idx]["image_id"],
+            "query_path": dataset.iloc[idx]["image_path"],
+            "query_caption": dataset.iloc[idx]["caption"],
+            "query_name": dataset.iloc[idx]["name"],
+            "retrieved_ids": [dataset.iloc[i]["image_id"] for i in retrieved],
+            "retrieved_paths": [dataset.iloc[i]["image_path"] for i in retrieved],
+            "retrieved_captions": [dataset.iloc[i]["caption"] for i in retrieved],
+            "retrieved_names": [dataset.iloc[i]["name"] for i in retrieved],
+            "is_correct": [labels[i] == labels[idx] for i in retrieved],
+        }
+        results_data.append(query_row)
+
+    results_df = pd.DataFrame(results_data)
+
     # Calculate metrics
     matches = np.expand_dims(labels, axis=1) == labels[retrieved_ids]
     matches = torch.tensor(np.array(matches), dtype=torch.float16)
@@ -148,14 +166,14 @@ def run_benchmark(
         torchmetrics.retrieval.RetrievalHitRate(top_k=top_k),
         torchmetrics.retrieval.RetrievalMAP(top_k=top_k),
     ]
-    results = {}
+    eval_metrics_results = {}
 
     for metr in metrics:
         score = round(metr(targets, matches, indexes).item(), 4)
         metr_name = metr.__class__.__name__.replace("Retrieval", "")
-        results[metr_name] = score
+        eval_metrics_results[metr_name] = score
 
-    return results
+    return eval_metrics_results, results_df
 
 
 def visualize_retrieval(
