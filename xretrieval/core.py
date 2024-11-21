@@ -168,6 +168,17 @@ def run_benchmark(
         metr_name = metr.__class__.__name__.replace("Retrieval", "")
         eval_metrics_results[metr_name] = score
 
+    # Print metrics in a rich table
+    table = Table(title="Retrieval Metrics")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Score", style="magenta")
+
+    for metric_name, score in eval_metrics_results.items():
+        table.add_row(metric_name, f"{score:.4f}")
+
+    console = Console()
+    console.print(table)
+
     # Create results DataFrame (keeping this for visualization purposes)
     results_data = []
     for idx, retrieved in enumerate(filtered_retrieved_ids):
