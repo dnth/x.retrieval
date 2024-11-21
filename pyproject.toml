@@ -77,3 +77,12 @@ replace = 'version = "{new_version}"'
 filename = "xretrieval/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
+
+[tool.hatch.build]
+include = [
+    "xretrieval/**/*.py",
+]
+exclude = [
+    "tests/*",
+    "nbs/*",
+]
