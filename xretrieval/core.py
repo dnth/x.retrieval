@@ -178,7 +178,7 @@ def run_benchmark(
 
 def visualize_retrieval(
     results_df: pd.DataFrame,
-    mode: str | None = None,  # Changed default to None
+    mode: str | None = None,
     num_queries: int = 5,
 ):
     """
@@ -197,6 +197,14 @@ def visualize_retrieval(
         query_row = results_df.iloc[query_idx]
         retrieved_paths = query_row["retrieved_paths"]
         retrieved_captions = query_row["retrieved_captions"]
+        retrieved_ids = query_row["retrieved_ids"]
+
+        # Always filter out self-matches
+        mask = [rid != query_row["query_id"] for rid in retrieved_ids]
+        retrieved_paths = [p for p, m in zip(retrieved_paths, mask) if m]
+        retrieved_captions = [c for c, m in zip(retrieved_captions, mask) if m]
+        retrieved_ids = [i for i, m in zip(retrieved_ids, mask) if m]
+
         top_k = len(retrieved_paths)
 
         plt.figure(figsize=(20, 8))
@@ -206,11 +214,13 @@ def visualize_retrieval(
         if mode is None or mode.startswith("image"):
             query_img = Image.open(query_row["query_path"])
             plt.imshow(query_img)
-            # Show caption below image if mode is None
             if mode is None:
-                plt.title(f'Query\n{query_row["query_caption"][:100]}...', fontsize=10)
+                plt.title(
+                    f'Query ID: {query_row["query_id"]}\n{query_row["query_caption"][:100]}...',
+                    fontsize=10,
+                )
             else:
-                plt.title("Query Image", fontsize=10)
+                plt.title(f'Query ID: {query_row["query_id"]}', fontsize=10)
         else:  # text-only mode
             plt.text(
                 0.5,
@@ -221,7 +231,7 @@ def visualize_retrieval(
                 wrap=True,
                 fontsize=12,
             )
-            plt.title("Query Text", fontsize=10)
+            plt.title(f'Query ID: {query_row["query_id"]}', fontsize=10)
         plt.axis("off")
 
         # Retrieved results visualization
@@ -230,13 +240,13 @@ def visualize_retrieval(
             if mode is None or mode.endswith("image"):
                 retrieved_img = Image.open(retrieved_paths[i])
                 plt.imshow(retrieved_img)
-                # Show caption below image if mode is None
                 if mode is None:
                     plt.title(
-                        f"Match {i+1}\n{retrieved_captions[i][:50]}...", fontsize=8
+                        f"Match {i+1} (ID: {retrieved_ids[i]})\n{retrieved_captions[i][:50]}...",
+                        fontsize=8,
                     )
                 else:
-                    plt.title(f"Match {i+1}", fontsize=8)
+                    plt.title(f"Match {i+1} (ID: {retrieved_ids[i]})", fontsize=8)
             else:  # text-only mode
                 plt.text(
                     0.5,
@@ -247,7 +257,7 @@ def visualize_retrieval(
                     wrap=True,
                     fontsize=8,
                 )
-                plt.title(f"Match {i+1}", fontsize=8)
+                plt.title(f"Match {i+1} (ID: {retrieved_ids[i]})", fontsize=8)
             plt.axis("off")
 
         plt.tight_layout(h_pad=2, w_pad=1)
