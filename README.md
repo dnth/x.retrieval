@@ -2,7 +2,7 @@
 [kaggle_badge]: https://img.shields.io/badge/Open%20In-Kaggle-blue?style=for-the-badge&logo=kaggle
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/dnth/x.retrieval/refs/heads/main/assets/logo.jpg" alt="x.retrieval" width="500"/>
+    <img src="https://raw.githubusercontent.com/dnth/x.retrieval/main/assets/logo.png" alt="x.retrieval" width="500"/>
     <br />
     <br />
     <a href="https://dnth.github.io/x.retrieval" target="_blank" rel="noopener noreferrer"><strong>Explore the docs »</strong></a>
