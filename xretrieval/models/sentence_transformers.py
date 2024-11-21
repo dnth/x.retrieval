@@ -1,4 +1,6 @@
+import numpy as np
 from sentence_transformers import SentenceTransformer
+from tqdm.auto import tqdm
 
 from xretrieval.models.base import TextModel
 from xretrieval.models_registry import ModelRegistry
@@ -33,5 +35,10 @@ class SentenceTransformerModel(TextModel):
     def load_model(self):
         return SentenceTransformer(self.model_id)
 
-    def encode_text(self, text: list[str]):
-        return self.model.encode(text)
+    def encode_text(self, text: list[str], batch_size: int = 32):
+        all_features = []
+        for i in tqdm(range(0, len(text), batch_size), desc="Encoding text"):
+            batch_text = text[i : i + batch_size]
+            features = self.model.encode(batch_text)
+            all_features.append(features)
+        return np.concatenate(all_features, axis=0)
