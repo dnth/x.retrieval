@@ -1,8 +1,22 @@
 [colab_badge]: https://img.shields.io/badge/Open%20In-Colab-blue?style=for-the-badge&logo=google-colab
 [kaggle_badge]: https://img.shields.io/badge/Open%20In-Kaggle-blue?style=for-the-badge&logo=kaggle
 
-# x.retrieval
-
+<div align="center">
+    <img src="https://raw.githubusercontent.com/dnth/x.retrieval/refs/heads/main/assets/logo.jpg" alt="x.retrieval" width="500"/>
+    <br />
+    <br />
+    <a href="https://dnth.github.io/x.retrieval" target="_blank" rel="noopener noreferrer"><strong>Explore the docs »</strong></a>
+    <br />
+    <a href="#-quickstart" target="_blank" rel="noopener noreferrer">Quickstart</a>
+    ·
+    <a href="https://github.com/dnth/x.retrieval/issues/new?assignees=&labels=Feature+Request&projects=&template=feature_request.md" target="_blank" rel="noopener noreferrer">Feature Request</a>
+    ·
+    <a href="https://github.com/dnth/x.retrieval/issues/new?assignees=&labels=bug&projects=&template=bug_report.md" target="_blank" rel="noopener noreferrer">Report Bug</a>
+    ·
+    <a href="https://github.com/dnth/x.retrieval/discussions" target="_blank" rel="noopener noreferrer">Discussions</a>
+    ·
+    <a href="https://dicksonneoh.com/" target="_blank" rel="noopener noreferrer">About</a>
+</div>
 Evaluate your multimodal retrieval system with any models and datasets.
 
 
