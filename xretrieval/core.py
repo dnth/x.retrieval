@@ -1,3 +1,5 @@
+import time
+
 import faiss
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,7 +10,6 @@ from loguru import logger
 from PIL import Image
 from rich.console import Console
 from rich.table import Table
-from tqdm.auto import tqdm
 
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
@@ -85,55 +86,91 @@ def run_benchmark(
         dataset_name: Name of the dataset to use or a pandas DataFrame containing the dataset
         model_id: ID of the model to use
         mode: Type of retrieval ("image-to-image", "text-to-text", "text-to-image", or "image-to-text")
-        top_k: Number of top results to retrieve
+        top_k: Number of top results to retrieve (will retrieve top_k + 1 to account for self-matches)
     """
     dataset = load_dataset(dataset)
     # TODO: Dataset should contain columns ['image_id', 'file_name', 'image_path', 'caption', 'name']
     model = load_model(model_id)
     model_info = ModelRegistry.get_model_info(model_id)
 
+    logger.info(f"Evaluating embeddings with parameter top_k: {top_k}")
     image_ids = dataset.image_id.tolist()
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
-    # Encode database items (what we're searching through)
-    if mode.endswith("image"):  # text-to-image or image-to-image
+    # Encode embeddings based on mode
+    if mode.endswith("image"):
         logger.info(f"Encoding database images for {model_id}")
-        db_embeddings = model.encode_image(dataset["image_path"].tolist())
-    else:  # text-to-text or image-to-text
+        embeddings = model.encode_image(dataset["image_path"].tolist())
+    else:
         logger.info(f"Encoding database text for {model_id}")
-        db_embeddings = model.encode_text(dataset["caption"].tolist())
+        embeddings = model.encode_text(dataset["caption"].tolist())
 
-    # Encode queries
-    if mode.startswith("image"):  # image-to-image or image-to-text
-        logger.info(f"Encoding query images for {model_id}")
-        query_embeddings = model.encode_image(dataset["image_path"].tolist())
-    else:  # text-to-text or text-to-image
-        logger.info(f"Encoding query text for {model_id}")
-        query_embeddings = model.encode_text(dataset["caption"].tolist())
+    if (
+        mode.startswith("text")
+        and mode.endswith("image")
+        or mode.startswith("image")
+        and mode.endswith("text")
+    ):
+        if mode.startswith("image"):
+            logger.info(f"Encoding query images for {model_id}")
+            query_embeddings = model.encode_image(dataset["image_path"].tolist())
+        else:
+            logger.info(f"Encoding query text for {model_id}")
+            query_embeddings = model.encode_text(dataset["caption"].tolist())
+    else:
+        query_embeddings = embeddings
 
     # Create FAISS index
-    index = faiss.IndexIDMap(faiss.IndexFlatIP(db_embeddings.shape[1]))
-    faiss.normalize_L2(db_embeddings)
-    index.add_with_ids(db_embeddings, np.arange(len(db_embeddings)))
+    logger.info("Creating indices for semantic search...")
+    embedding_dimension = embeddings.shape[1]
+    index = faiss.IndexIDMap(faiss.IndexFlatIP(embedding_dimension))
+    faiss.normalize_L2(embeddings)
+    index.add_with_ids(embeddings, np.arange(len(embeddings)))
 
     # Search
+    logger.info("Performing semantic search...")
     faiss.normalize_L2(query_embeddings)
-    _, retrieved_ids = index.search(query_embeddings, k=top_k)
+    _, retrieved_ids = index.search(
+        query_embeddings, k=top_k + 1
+    )  # +1 to account for self-matches
 
-    # Remove self matches for same-modality retrieval
-    if mode in ["image-to-image", "text-to-text"]:
-        filtered_retrieved_ids = []
-        for idx, row in enumerate(tqdm(retrieved_ids)):
-            filtered_row = [x for x in row if x != idx]
-            if len(filtered_row) != top_k - 1:
-                filtered_row = filtered_row[: top_k - 1]
-            filtered_retrieved_ids.append(filtered_row)
-        retrieved_ids = np.array(filtered_retrieved_ids)
+    # Filter self matches
+    filtered_retrieved_ids = []
+    for idx, row in enumerate(retrieved_ids):
+        filtered_row = [x for x in row if x != idx]
+        if len(filtered_row) != top_k:
+            filtered_row = filtered_row[:top_k]
+        filtered_retrieved_ids.append(filtered_row)
+    filtered_retrieved_ids = np.array(filtered_retrieved_ids)
 
-    # Create results DataFrame
+    # Calculate metrics
+    matches = np.expand_dims(labels, axis=1) == labels[filtered_retrieved_ids]
+    matches = torch.tensor(np.array(matches), dtype=torch.float16)
+    targets = torch.ones(matches.shape)
+    indexes = (
+        torch.arange(matches.shape[0]).view(-1, 1)
+        * torch.ones(1, matches.shape[1]).long()
+    )
+
+    metrics = [
+        torchmetrics.retrieval.RetrievalMRR(),
+        torchmetrics.retrieval.RetrievalNormalizedDCG(),
+        torchmetrics.retrieval.RetrievalPrecision(),
+        torchmetrics.retrieval.RetrievalRecall(),
+        torchmetrics.retrieval.RetrievalHitRate(),
+        torchmetrics.retrieval.RetrievalMAP(),
+    ]
+    eval_metrics_results = {}
+
+    for metr in metrics:
+        score = round(metr(targets, matches, indexes).item(), 4)
+        metr_name = metr.__class__.__name__.replace("Retrieval", "")
+        eval_metrics_results[metr_name] = score
+
+    # Create results DataFrame (keeping this for visualization purposes)
     results_data = []
-    for idx, retrieved in enumerate(retrieved_ids):
+    for idx, retrieved in enumerate(filtered_retrieved_ids):
         query_row = {
             "query_id": dataset.iloc[idx]["image_id"],
             "query_path": dataset.iloc[idx]["image_path"],
@@ -149,30 +186,6 @@ def run_benchmark(
 
     results_df = pd.DataFrame(results_data)
 
-    # Calculate metrics
-    matches = np.expand_dims(labels, axis=1) == labels[retrieved_ids]
-    matches = torch.tensor(np.array(matches), dtype=torch.float16)
-    targets = torch.ones(matches.shape)
-    indexes = (
-        torch.arange(matches.shape[0]).view(-1, 1)
-        * torch.ones(1, matches.shape[1]).long()
-    )
-
-    metrics = [
-        torchmetrics.retrieval.RetrievalMRR(top_k=top_k),
-        torchmetrics.retrieval.RetrievalNormalizedDCG(top_k=top_k),
-        torchmetrics.retrieval.RetrievalPrecision(top_k=top_k),
-        torchmetrics.retrieval.RetrievalRecall(top_k=top_k),
-        torchmetrics.retrieval.RetrievalHitRate(top_k=top_k),
-        torchmetrics.retrieval.RetrievalMAP(top_k=top_k),
-    ]
-    eval_metrics_results = {}
-
-    for metr in metrics:
-        score = round(metr(targets, matches, indexes).item(), 4)
-        metr_name = metr.__class__.__name__.replace("Retrieval", "")
-        eval_metrics_results[metr_name] = score
-
     return eval_metrics_results, results_df
 
 
@@ -180,6 +193,7 @@ def visualize_retrieval(
     results_df: pd.DataFrame,
     mode: str | None = None,
     num_queries: int = 5,
+    seed: int = 42,
 ):
     """
     Visualize retrieval results from the benchmark results DataFrame
@@ -190,6 +204,7 @@ def visualize_retrieval(
               If None, shows both image and caption for queries and results
         num_queries: Number of random queries to visualize
     """
+    np.random.seed(seed)
     # Select random queries
     query_indices = np.random.choice(len(results_df), num_queries, replace=False)
 
@@ -205,18 +220,22 @@ def visualize_retrieval(
         retrieved_captions = [c for c, m in zip(retrieved_captions, mask) if m]
         retrieved_ids = [i for i, m in zip(retrieved_ids, mask) if m]
 
+        # Limit to 10 results (2 rows of 5)
+        max_results = 10
+        retrieved_paths = retrieved_paths[:max_results]
+        retrieved_captions = retrieved_captions[:max_results]
+        retrieved_ids = retrieved_ids[:max_results]
         top_k = len(retrieved_paths)
 
-        plt.figure(figsize=(20, 8))
+        plt.figure(figsize=(20, 12))
 
-        # Query visualization
-        plt.subplot(2, 1, 1)
+        plt.subplot(3, 1, 1)
         if mode is None or mode.startswith("image"):
             query_img = Image.open(query_row["query_path"])
             plt.imshow(query_img)
             if mode is None:
                 plt.title(
-                    f'Query ID: {query_row["query_id"]}\n{query_row["query_caption"][:100]}...',
+                    f'Query ID: {query_row["query_id"]}\n{query_row["query_caption"][:200]}...',
                     fontsize=10,
                 )
             else:
@@ -234,15 +253,17 @@ def visualize_retrieval(
             plt.title(f'Query ID: {query_row["query_id"]}', fontsize=10)
         plt.axis("off")
 
-        # Retrieved results visualization
+        # Retrieved results visualization in 2 rows
         for i in range(top_k):
-            plt.subplot(2, top_k, top_k + i + 1)
+            row = 1 if i < 5 else 2  # First 5 in row 1, next 5 in row 2
+            col = i % 5  # Column position within row
+            plt.subplot(3, 5, 5 * row + col + 1)  # Adjusted subplot positioning
             if mode is None or mode.endswith("image"):
                 retrieved_img = Image.open(retrieved_paths[i])
                 plt.imshow(retrieved_img)
                 if mode is None:
                     plt.title(
-                        f"Match {i+1} (ID: {retrieved_ids[i]})\n{retrieved_captions[i][:50]}...",
+                        f"Match {i+1} (ID: {retrieved_ids[i]})\n{retrieved_captions[i][:200]}...",
                         fontsize=8,
                     )
                 else:
