@@ -8,6 +8,7 @@ from .core import (
     load_dataset,
     load_model,
     run_benchmark,
+    visualize_ground_truth,
     visualize_retrieval,
 )
 from .datasets import COCODataset
@@ -22,4 +23,5 @@ __all__ = [
     "load_model",
     "run_benchmark",
     "visualize_retrieval",
+    "visualize_ground_truth",
 ]
