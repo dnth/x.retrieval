@@ -12,7 +12,7 @@
 ![License][license_badge]
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/dnth/x.retrieval/main/assets/logo.png" alt="x.retrieval" width="700"/>
+    <img src="https://raw.githubusercontent.com/dnth/x.retrieval/main/assets/logo.png" alt="x.retrieval" width="600"/>
     <br />
     <br />
     <a href="https://dnth.github.io/x.retrieval" target="_blank" rel="noopener noreferrer"><strong>Explore the docs »</strong></a>
