@@ -26,6 +26,8 @@
     <a href="https://github.com/dnth/x.retrieval/discussions" target="_blank" rel="noopener noreferrer">Discussions</a>
     ·
     <a href="https://dicksonneoh.com/" target="_blank" rel="noopener noreferrer">About</a>
+    <br />
+    <br />
 </div>
 Evaluate your multimodal retrieval system with any models and datasets.
 
