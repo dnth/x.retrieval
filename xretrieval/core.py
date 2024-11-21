@@ -171,6 +171,13 @@ def run_benchmark(
     # Create results DataFrame (keeping this for visualization purposes)
     results_data = []
     for idx, retrieved in enumerate(filtered_retrieved_ids):
+        # Get all ground truth matches for this query (excluding self)
+        query_name = dataset.iloc[idx]["name"]
+        ground_truth_matches = dataset[
+            (dataset["name"] == query_name)
+            & (dataset["image_id"] != dataset.iloc[idx]["image_id"])
+        ]
+
         query_row = {
             "query_id": dataset.iloc[idx]["image_id"],
             "query_path": dataset.iloc[idx]["image_path"],
@@ -181,6 +188,10 @@ def run_benchmark(
             "retrieved_captions": [dataset.iloc[i]["caption"] for i in retrieved],
             "retrieved_names": [dataset.iloc[i]["name"] for i in retrieved],
             "is_correct": [labels[i] == labels[idx] for i in retrieved],
+            # Add ground truth information
+            "ground_truth_ids": ground_truth_matches["image_id"].tolist(),
+            "ground_truth_paths": ground_truth_matches["image_path"].tolist(),
+            "ground_truth_captions": ground_truth_matches["caption"].tolist(),
         }
         results_data.append(query_row)
 
@@ -235,7 +246,7 @@ def visualize_retrieval(
             plt.imshow(query_img)
             if mode is None:
                 plt.title(
-                    f'Query ID: {query_row["query_id"]}\n{query_row["query_caption"][:200]}...',
+                    f'Query ID: {query_row["query_id"]}\n{query_row["query_caption"][:50]}...',
                     fontsize=10,
                 )
             else:
@@ -263,7 +274,7 @@ def visualize_retrieval(
                 plt.imshow(retrieved_img)
                 if mode is None:
                     plt.title(
-                        f"Match {i+1} (ID: {retrieved_ids[i]})\n{retrieved_captions[i][:200]}...",
+                        f"Match {i+1} (ID: {retrieved_ids[i]})\n{retrieved_captions[i][:50]}...",
                         fontsize=8,
                     )
                 else:
@@ -279,6 +290,103 @@ def visualize_retrieval(
                     fontsize=8,
                 )
                 plt.title(f"Match {i+1} (ID: {retrieved_ids[i]})", fontsize=8)
+            plt.axis("off")
+
+        plt.tight_layout(h_pad=2, w_pad=1)
+        plt.show()
+
+
+def visualize_ground_truth(
+    dataset: str,
+    mode: str | None = None,
+    num_queries: int = 5,
+    seed: int = 42,
+):
+    """
+    Visualize ground truth matches from the dataset
+
+    Args:
+        dataset: Dataset name or DataFrame containing the dataset
+        mode: Type of visualization ("image-to-image", "text-to-text", "text-to-image", "image-to-text")
+              If None, shows both image and caption for queries and results
+        num_queries: Number of random queries to visualize
+        seed: Random seed for reproducibility
+    """
+    np.random.seed(seed)
+    dataset = load_dataset(dataset)
+
+    # Select random queries
+    query_indices = np.random.choice(len(dataset), num_queries, replace=False)
+
+    for query_idx in query_indices:
+        query_row = dataset.iloc[query_idx]
+        query_name = query_row["name"]
+
+        # Get all matches (excluding self)
+        matches = dataset[
+            (dataset["name"] == query_name)
+            & (dataset["image_id"] != query_row["image_id"])
+        ]
+
+        # Limit to 10 results (2 rows of 5)
+        max_results = 10
+        matches = matches.head(max_results)
+        top_k = len(matches)
+
+        plt.figure(figsize=(20, 12))
+
+        # Query visualization
+        plt.subplot(3, 1, 1)
+        if mode is None or mode.startswith("image"):
+            query_img = Image.open(query_row["image_path"])
+            plt.imshow(query_img)
+            if mode is None:
+                plt.title(
+                    f'Query ID: {query_row["image_id"]}\n{query_row["caption"][:50]}...',
+                    fontsize=10,
+                )
+            else:
+                plt.title(f'Query ID: {query_row["image_id"]}', fontsize=10)
+        else:  # text-only mode
+            plt.text(
+                0.5,
+                0.5,
+                query_row["caption"],
+                horizontalalignment="center",
+                verticalalignment="center",
+                wrap=True,
+                fontsize=12,
+            )
+            plt.title(f'Query ID: {query_row["image_id"]}', fontsize=10)
+        plt.axis("off")
+
+        # Ground truth matches visualization in 2 rows
+        for i, (_, match) in enumerate(matches.iterrows()):
+            row = 1 if i < 5 else 2  # First 5 in row 1, next 5 in row 2
+            col = i % 5  # Column position within row
+            plt.subplot(3, 5, 5 * row + col + 1)  # Adjusted subplot positioning
+
+            if mode is None or mode.endswith("image"):
+                match_img = Image.open(match["image_path"])
+                plt.imshow(match_img)
+                if mode is None:
+                    plt.title(
+                        f"Match {i+1} (ID: {match['image_id']})\n{match['caption'][:50]}...",
+                        fontsize=8,
+                    )
+                else:
+                    plt.title(f"Match {i+1} (ID: {match['image_id']})", fontsize=8)
+            else:  # text-only mode
+                plt.text(
+                    0.5,
+                    0.5,
+                    match["caption"],
+                    horizontalalignment="center",
+                    verticalalignment="center",
+                    wrap=True,
+                    fontsize=8,
+                )
+                plt.title(f"Match {i+1} (ID: {match['image_id']})", fontsize=8)
             plt.axis("off")
 
         plt.tight_layout(h_pad=2, w_pad=1)
