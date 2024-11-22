@@ -131,3 +131,11 @@ xretrieval.list_models()
 ```
 
 
+Visualize retrieval results:
+
+```python
+xretrieval.visualize_retrieval(results_df)
+```
+
+![alt text](assets/viz1.png)
+![alt text](assets/viz2.png)
