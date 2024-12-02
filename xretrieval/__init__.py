@@ -8,6 +8,7 @@ from .core import (
     load_dataset,
     load_model,
     run_benchmark,
+    run_bm25,
     visualize_ground_truth,
     visualize_retrieval,
 )
@@ -24,4 +25,5 @@ __all__ = [
     "run_benchmark",
     "visualize_retrieval",
     "visualize_ground_truth",
+    "run_bm25",
 ]
