@@ -1,3 +1,7 @@
-from .coco import COCODataset
+from .coco import COCODataset, COCODatasetBLIP2Captions, COCODatasetVLRMCaptions
 
-__all__ = ["COCODataset"]
+__all__ = [
+    "COCODataset",
+    "COCODatasetBLIP2Captions",
+    "COCODatasetVLRMCaptions",
+]

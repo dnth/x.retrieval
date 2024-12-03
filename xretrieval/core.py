@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .datasets_registry import DatasetRegistry
+from .models.bm25 import BM25sModel
 from .models_registry import ModelRegistry
 
 
@@ -71,6 +72,87 @@ def load_model(model_id: str):
     return model_class(model_id=model_id)
 
 
+def run_benchmark_bm25(dataset: str, top_k: int = 10):
+    logger.info("Running BM25 retrieval benchmark")
+    bm25_model = BM25sModel()
+    dataset = load_dataset(dataset)
+
+    logger.info("Tokenizing corpus")
+    corpus = dataset["caption"].tolist()
+    bm25_model.tokenize_text(corpus)
+
+    # Get labels for evaluation
+    image_ids = dataset.image_id.tolist()
+    image_ids = np.array(image_ids)
+    labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
+
+    logger.info("Performing retrieval")
+    retrieved_ids = bm25_model.retrieve(corpus, top_k=top_k)
+
+    logger.info("Calculating metrics")
+    matches = np.expand_dims(labels, axis=1) == labels[retrieved_ids]
+    matches = torch.tensor(np.array(matches), dtype=torch.float16)
+    targets = torch.ones(matches.shape)
+    indexes = (
+        torch.arange(matches.shape[0]).view(-1, 1)
+        * torch.ones(1, matches.shape[1]).long()
+    )
+
+    metrics = [
+        torchmetrics.retrieval.RetrievalMRR(),
+        torchmetrics.retrieval.RetrievalNormalizedDCG(),
+        torchmetrics.retrieval.RetrievalPrecision(),
+        torchmetrics.retrieval.RetrievalRecall(),
+        torchmetrics.retrieval.RetrievalHitRate(),
+        torchmetrics.retrieval.RetrievalMAP(),
+    ]
+    eval_metrics_results = {}
+
+    for metr in metrics:
+        score = round(metr(targets, matches, indexes).item(), 4)
+        metr_name = metr.__class__.__name__.replace("Retrieval", "")
+        eval_metrics_results[metr_name] = score
+
+    table = Table(title=f"Retrieval Metrics @ k={top_k}")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Score", style="magenta")
+
+    for metric_name, score in eval_metrics_results.items():
+        table.add_row(metric_name, f"{score:.4f}")
+
+    console = Console()
+    console.print(table)
+
+    # Create results DataFrame for visualization
+    results_data = []
+    for idx, retrieved in enumerate(retrieved_ids):
+        query_name = dataset.iloc[idx]["name"]
+        ground_truth_matches = dataset[
+            (dataset["name"] == query_name)
+            & (dataset["image_id"] != dataset.iloc[idx]["image_id"])
+        ]
+
+        query_row = {
+            "query_id": dataset.iloc[idx]["image_id"],
+            "query_path": dataset.iloc[idx]["image_path"],
+            "query_caption": dataset.iloc[idx]["caption"],
+            "query_name": dataset.iloc[idx]["name"],
+            "retrieved_ids": [dataset.iloc[i]["image_id"] for i in retrieved],
+            "retrieved_paths": [dataset.iloc[i]["image_path"] for i in retrieved],
+            "retrieved_captions": [dataset.iloc[i]["caption"] for i in retrieved],
+            "retrieved_names": [dataset.iloc[i]["name"] for i in retrieved],
+            "is_correct": [labels[i] == labels[idx] for i in retrieved],
+            "ground_truth_ids": ground_truth_matches["image_id"].tolist(),
+            "ground_truth_paths": ground_truth_matches["image_path"].tolist(),
+            "ground_truth_captions": ground_truth_matches["caption"].tolist(),
+        }
+        results_data.append(query_row)
+
+    results_df = pd.DataFrame(results_data)
+
+    return eval_metrics_results, results_df
+
+
 def run_benchmark(
     dataset: str | pd.DataFrame,
     model_id: str,
@@ -87,6 +169,7 @@ def run_benchmark(
         top_k: Number of top results to retrieve (will retrieve top_k + 1 to account for self-matches)
     """
     dataset = load_dataset(dataset)
+
     # TODO: Dataset should contain columns ['image_id', 'file_name', 'image_path', 'caption', 'name']
     model = load_model(model_id)
     model_info = ModelRegistry.get_model_info(model_id)

@@ -8,10 +8,11 @@ from .core import (
     load_dataset,
     load_model,
     run_benchmark,
+    run_benchmark_bm25,
     visualize_ground_truth,
     visualize_retrieval,
 )
-from .datasets import COCODataset
+from .datasets import COCODataset, COCODatasetBLIP2Captions, COCODatasetVLRMCaptions
 from .datasets_registry import DatasetRegistry
 from .models import SentenceTransformerModel
 from .models_registry import ModelRegistry
@@ -22,6 +23,7 @@ __all__ = [
     "list_models",
     "load_model",
     "run_benchmark",
+    "run_benchmark_bm25",
     "visualize_retrieval",
     "visualize_ground_truth",
 ]
