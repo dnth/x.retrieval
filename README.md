@@ -29,25 +29,15 @@
     <br />
     <br />
 </div>
-Evaluate your multimodal retrieval system with any models and datasets.
+Evaluate your multimodal retrieval system in 3 lines of code.
 
-
-Specific inputs:
-
-- A dataset
-- A model
-- A mode (e.g. `image-to-image`)
-
-Get evaluation metrics:
-
-- A retrieval results dataframe
-- A retrieval metrics dataframe
 
 ## 🌟 Key Features
 
-- ✅ Supports a wide range of models and datasets.
-- ✅ Installation in one line.
-- ✅ Run benchmarks with one function call.
+- ✅ Load datasets and models with one line of code.
+- ✅ Built in support for Sentence Transformers, TIMM, BM25, and Transformers models.
+- ✅ Run benchmarks with one line of code and get retrieval metrics like MRR, NormalizedDCG, Precision, Recall, HitRate, and MAP.
+- ✅ Visualize retrieval results to understand how your model is performing.
 
 ## 🚀 Quickstart
 
@@ -66,16 +56,17 @@ metrics, results_df = xretrieval.run_benchmark(
 ```
 
 ```bash
-    Retrieval Metrics     
+
+ Retrieval Metrics @ k=10 
 ┏━━━━━━━━━━━━━━━┳━━━━━━━━┓
 ┃ Metric        ┃ Score  ┃
 ┡━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ MRR           │ 0.3032 │
-│ NormalizedDCG │ 0.3497 │
-│ Precision     │ 0.2274 │
-│ Recall        │ 0.4898 │
-│ HitRate       │ 0.4898 │
-│ MAP           │ 0.2753 │
+│ MRR           │ 0.2358 │
+│ NormalizedDCG │ 0.2854 │
+│ Precision     │ 0.1660 │
+│ Recall        │ 0.4248 │
+│ HitRate       │ 0.4248 │
+│ MAP           │ 0.2095 │
 └───────────────┴────────┘
 
 ```
@@ -95,12 +86,14 @@ xretrieval.list_datasets()
 ```
 
 ```bash
-                    Available Datasets                     
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ Dataset Name  ┃ Description                             ┃
-┡━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
-│ coco-val-2017 │ The COCO Validation Set with 5k images. │
-└───────────────┴─────────────────────────────────────────┘
+                                     Available Datasets                                      
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Dataset Name                 ┃ Description                                                ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ coco-val-2017                │ The COCO Validation Set with 5k images.                    │
+│ coco-val-2017-blip2-captions │ The COCO Validation Set with 5k images and BLIP2 captions. │
+│ coco-val-2017-vlrm-captions  │ The COCO Validation Set with 5k images and VLRM captions.  │
+└──────────────────────────────┴────────────────────────────────────────────────────────────┘
 ```
 
 List models:
@@ -117,6 +110,7 @@ xretrieval.list_models()
 │ transformers/Salesforce/blip2-itm-vit-g          │ text-image  │
 │ transformers/Salesforce/blip2-itm-vit-g-text     │ text        │
 │ transformers/Salesforce/blip2-itm-vit-g-image    │ image       │
+│ xhluca/bm25s                                     │ text        │
 │ sentence-transformers/paraphrase-MiniLM-L3-v2    │ text        │
 │ sentence-transformers/paraphrase-albert-small-v2 │ text        │
 │ sentence-transformers/multi-qa-distilbert-cos-v1 │ text        │
