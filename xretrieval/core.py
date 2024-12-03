@@ -8,7 +8,6 @@ from loguru import logger
 from PIL import Image
 from rich.console import Console
 from rich.table import Table
-from tqdm.auto import tqdm
 
 from .datasets_registry import DatasetRegistry
 from .models_registry import ModelRegistry
@@ -72,7 +71,7 @@ def load_model(model_id: str):
     return model_class(model_id=model_id)
 
 
-def run_bm25(dataset: str):
+def run_bm25(dataset: str, top_k: int = 10):
     logger.info("Running BM25 retrieval benchmark")
     import bm25s
     import Stemmer
@@ -97,27 +96,16 @@ def run_bm25(dataset: str):
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
-    # Perform retrieval for each query with progress bar
-    top_k = 10  # Can be made configurable as a parameter
-    logger.info(f"Performing BM25 retrieval with top_k: {top_k}")
+    logger.info("Performing batch retrieval")
+    results = retriever.retrieve(corpus_tokens, k=top_k + 1)
     retrieved_ids = []
 
-    for idx, query in enumerate(tqdm(corpus, desc="BM25 Retrieval")):
-        # Tokenize query - don't extract [0], keep as list of tokens
-        query_tokens = bm25s.tokenize(query, stopwords="en", stemmer=stemmer)
-
-        # Get results and scores
-        results, scores = retriever.retrieve(
-            query_tokens, k=top_k + 1
-        )  # +1 for self-match
-
-        # Results are already sorted, just need to filter self-match
-        filtered_indices = [i for i in results[0] if i != idx][:top_k]
-        retrieved_ids.append(filtered_indices)
-
+    # Filter self matches for each query
+    for idx, docs in enumerate(results.documents):
+        filtered_docs = [doc for doc in docs if doc != idx][:top_k]
+        retrieved_ids.append(filtered_docs)
     retrieved_ids = np.array(retrieved_ids)
 
-    # Calculate metrics (similar to run_benchmark)
     matches = np.expand_dims(labels, axis=1) == labels[retrieved_ids]
     matches = torch.tensor(np.array(matches), dtype=torch.float16)
     targets = torch.ones(matches.shape)
@@ -126,7 +114,6 @@ def run_bm25(dataset: str):
         * torch.ones(1, matches.shape[1]).long()
     )
 
-    # Use same metrics as run_benchmark
     metrics = [
         torchmetrics.retrieval.RetrievalMRR(),
         torchmetrics.retrieval.RetrievalNormalizedDCG(),
@@ -143,7 +130,7 @@ def run_bm25(dataset: str):
         eval_metrics_results[metr_name] = score
 
     # Print metrics table
-    table = Table(title="BM25 Retrieval Metrics")
+    table = Table(title="Retrieval Metrics")
     table.add_column("Metric", style="cyan")
     table.add_column("Score", style="magenta")
 
