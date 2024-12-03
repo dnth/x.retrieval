@@ -12,7 +12,7 @@ from .core import (
     visualize_ground_truth,
     visualize_retrieval,
 )
-from .datasets import COCODataset
+from .datasets import COCODataset, COCODatasetBLIP2Captions, COCODatasetVLRMCaptions
 from .datasets_registry import DatasetRegistry
 from .models import SentenceTransformerModel
 from .models_registry import ModelRegistry

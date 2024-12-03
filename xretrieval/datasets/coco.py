@@ -159,3 +159,25 @@ class COCODataset:
         )
 
         return df
+
+
+@DatasetRegistry.register(
+    "coco-val-2017-blip2-captions",
+    "The COCO Validation Set with 5k images and BLIP2 captions.",
+)
+class COCODatasetBLIP2Captions(COCODataset):
+    def load_annotations(self) -> pd.DataFrame:
+        url = "https://github.com/dnth/x.retrieval/releases/download/v0.1.1/blip2_captioned_coco_val_2017.parquet"
+        df = pd.read_parquet(url)
+        return df
+
+
+@DatasetRegistry.register(
+    "coco-val-2017-vlrm-captions",
+    "The COCO Validation Set with 5k images and VLRM captions.",
+)
+class COCODatasetVLRMCaptions(COCODataset):
+    def load_annotations(self) -> pd.DataFrame:
+        url = "https://github.com/dnth/x.retrieval/releases/download/v0.1.1/vlrm_captioned_coco_val_2017.parquet"
+        df = pd.read_parquet(url)
+        return df
