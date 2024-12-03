@@ -78,7 +78,7 @@ pip install xretrieval
 ```
 
 From source:
-    
+
 ```bash
 pip install git+https://github.com/dnth/x.retrieval
 ```
@@ -130,6 +130,12 @@ xretrieval.list_models()
 └──────────────────────────────────────────────────┴─────────────┘
 ```
 
+
+Run benchmarks:
+
+```python
+results, results_df = xretrieval.run_benchmark_bm25("coco-val-2017-blip2-captions")
+```
 
 Visualize retrieval results:
 
