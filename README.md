@@ -36,7 +36,7 @@ Evaluate your multimodal retrieval system in 3 lines of code.
 
 - ✅ Load datasets and models with one line of code.
 - ✅ Built in support for Sentence Transformers, TIMM, BM25, and Transformers models.
-- ✅ Run benchmarks with one line of code and get retrieval metrics like MRR, NormalizedDCG, Precision, Recall, HitRate, and MAP.
+- ✅ Run benchmarks and get retrieval metrics like MRR, NormalizedDCG, Precision, Recall, HitRate, and MAP.
 - ✅ Visualize retrieval results to understand how your model is performing.
 
 ## 🚀 Quickstart
