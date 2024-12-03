@@ -72,9 +72,15 @@ metrics, results_df = xretrieval.run_benchmark(
 ```
 
 ## 📦 Installation
-
+From PyPI:
 ```bash
 pip install xretrieval
+```
+
+From source:
+    
+```bash
+pip install git+https://github.com/dnth/x.retrieval
 ```
 
 ## 🛠️ Usage
