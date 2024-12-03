@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .datasets_registry import DatasetRegistry
+from .models.bm25 import BM25sModel
 from .models_registry import ModelRegistry
 
 
@@ -71,41 +72,24 @@ def load_model(model_id: str):
     return model_class(model_id=model_id)
 
 
-def run_bm25(dataset: str, top_k: int = 10):
+def run_benchmark_bm25(dataset: str, top_k: int = 10):
     logger.info("Running BM25 retrieval benchmark")
-    import bm25s
-    import Stemmer
-
+    bm25_model = BM25sModel()
     dataset = load_dataset(dataset)
 
-    logger.info("Preparing corpus")
-    corpus = dataset["caption"].tolist()
-    stemmer = Stemmer.Stemmer("english")
-
-    # Tokenize corpus efficiently in one batch
     logger.info("Tokenizing corpus")
-    corpus_tokens = bm25s.tokenize(corpus, stopwords="en", stemmer=stemmer)
-
-    # Initialize and index BM25 retriever
-    logger.info("Initializing and indexing BM25 retriever")
-    retriever = bm25s.BM25()
-    retriever.index(corpus_tokens)
+    corpus = dataset["caption"].tolist()
+    bm25_model.tokenize_text(corpus)
 
     # Get labels for evaluation
     image_ids = dataset.image_id.tolist()
     image_ids = np.array(image_ids)
     labels = dataset.loc[(dataset.image_id.isin(image_ids))].name.to_numpy()
 
-    logger.info("Performing batch retrieval")
-    results = retriever.retrieve(corpus_tokens, k=top_k + 1)
-    retrieved_ids = []
+    logger.info("Performing retrieval")
+    retrieved_ids = bm25_model.retrieve(corpus, top_k=top_k)
 
-    # Filter self matches for each query
-    for idx, docs in enumerate(results.documents):
-        filtered_docs = [doc for doc in docs if doc != idx][:top_k]
-        retrieved_ids.append(filtered_docs)
-    retrieved_ids = np.array(retrieved_ids)
-
+    logger.info("Calculating metrics")
     matches = np.expand_dims(labels, axis=1) == labels[retrieved_ids]
     matches = torch.tensor(np.array(matches), dtype=torch.float16)
     targets = torch.ones(matches.shape)
@@ -129,8 +113,7 @@ def run_bm25(dataset: str, top_k: int = 10):
         metr_name = metr.__class__.__name__.replace("Retrieval", "")
         eval_metrics_results[metr_name] = score
 
-    # Print metrics table
-    table = Table(title="Retrieval Metrics")
+    table = Table(title=f"Retrieval Metrics @ k={top_k}")
     table.add_column("Metric", style="cyan")
     table.add_column("Score", style="magenta")
 
