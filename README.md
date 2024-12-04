@@ -38,6 +38,7 @@ Evaluate your multimodal retrieval system in 3 lines of code.
 - ✅ Built in support for Sentence Transformers, TIMM, BM25, and Transformers models.
 - ✅ Run benchmarks and get retrieval metrics like MRR, NormalizedDCG, Precision, Recall, HitRate, and MAP.
 - ✅ Visualize retrieval results to understand how your model is performing.
+- ✅ Combine retrieval results from multiple models using Reciprocal Rank Fusion (RRF).
 
 ## 🚀 Quickstart
 
