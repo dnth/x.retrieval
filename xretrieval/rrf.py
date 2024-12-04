@@ -58,7 +58,7 @@ def run_rrf(results_list: list, dataset: str) -> pd.DataFrame:
 
         # Check if retrieved IDs contain the query ID
         query_id = results_list[0].iloc[idx]["query_id"]
-        is_correct = [1 if doc_id == query_id else 0 for doc_id in sorted_docs]
+        is_correct = [doc_id == query_id for doc_id in sorted_docs]
 
         # Append to lists
         new_retrieved_ids.append(sorted_docs)
