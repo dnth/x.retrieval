@@ -1,16 +1,21 @@
+import numpy as np
 import pandas as pd
+import torch
+import torchmetrics
+from rich.console import Console
+from rich.table import Table
 
 from .core import load_dataset
 
 
-def run_rrf(results_list: list, dataset: str) -> pd.DataFrame:
+def run_rrf(results_list: list, dataset: str, top_k: int = 10) -> pd.DataFrame:
     """
     Combines multiple retrieval results using Reciprocal Rank Fusion algorithm.
 
     Args:
         results_list: List of DataFrames containing retrieval results
         dataset: Dataset containing image mappings
-        bias: RRF bias parameter (default: 60)
+        top_k: Number of top results to retrieve
 
     Returns:
         DataFrame with combined retrieval results
@@ -33,14 +38,14 @@ def run_rrf(results_list: list, dataset: str) -> pd.DataFrame:
         # Get rankings for current query from all results
         rankings = [results[idx] for results in retrieved_ids_lists]
 
-        # Apply RRF to get sorted doc IDs
+        # Apply RRF to get sorted doc IDs and limit to top_k
         rrf_scores = reciprocal_rank_fusion(rankings)
         sorted_docs = [
             doc_id
             for doc_id, _ in sorted(
                 rrf_scores.items(), key=lambda x: x[1], reverse=True
             )
-        ]
+        ][:top_k]  # Limit to top_k results
 
         # Get corresponding values from dataset
         paths = [
@@ -73,9 +78,55 @@ def run_rrf(results_list: list, dataset: str) -> pd.DataFrame:
     new_df["retrieved_paths"] = new_retrieved_paths
     new_df["retrieved_captions"] = new_retrieved_captions
     new_df["retrieved_names"] = new_retrieved_names
-    new_df["is_correct"] = new_is_correct
 
-    return new_df
+    # Recalculate is_correct based on query_name matching retrieved_names
+    new_df["is_correct"] = new_df.apply(
+        lambda row: [name == row["query_name"] for name in row["retrieved_names"]],
+        axis=1,
+    )
+
+    # Calculate metrics using torchmetrics
+    matches = np.array(new_df["is_correct"].tolist())
+    matches = torch.tensor(matches, dtype=torch.float16)
+    targets = torch.ones(matches.shape)
+    indexes = (
+        torch.arange(matches.shape[0]).view(-1, 1)
+        * torch.ones(1, matches.shape[1]).long()
+    )
+
+    # Add debug prints
+    print(f"Matches shape: {matches.shape}")
+    print(f"Top-k value: {top_k}")
+    print(f"Number of positive matches: {matches.sum().item()}")
+    print(f"Sample of matches:\n{matches[:5]}")
+
+    metrics = [
+        torchmetrics.retrieval.RetrievalMRR(),
+        torchmetrics.retrieval.RetrievalNormalizedDCG(),
+        torchmetrics.retrieval.RetrievalPrecision(),
+        torchmetrics.retrieval.RetrievalRecall(),
+        torchmetrics.retrieval.RetrievalHitRate(),
+        torchmetrics.retrieval.RetrievalMAP(),
+    ]
+    eval_metrics_results = {}
+
+    for metr in metrics:
+        score = round(metr(targets, matches, indexes).item(), 4)
+        metr_name = metr.__class__.__name__.replace("Retrieval", "")
+        eval_metrics_results[metr_name] = score
+
+    # Print metrics in a rich table
+    table = Table(title=f"Retrieval Metrics @ k={top_k}")
+    table.add_column("Metric", style="cyan")
+    table.add_column("Score", style="magenta")
+
+    for metric_name, score in eval_metrics_results.items():
+        table.add_row(metric_name, f"{score:.4f}")
+
+    console = Console()
+    console.print(table)
+
+    return eval_metrics_results, new_df
 
 
 def reciprocal_rank_fusion(ranked_lists: list[list], bias: int = 60) -> dict:
