@@ -145,3 +145,9 @@ xretrieval.visualize_retrieval(results_df)
 
 ![alt text](assets/viz1.png)
 ![alt text](assets/viz2.png)
+
+Run hybrid search with Reciprocal Rank Fusion (RRF):
+
+```python
+results_df = xretrieval.run_rrf([results_df, results_df], "coco-val-2017")
+```

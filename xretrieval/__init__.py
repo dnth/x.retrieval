@@ -16,6 +16,7 @@ from .datasets import COCODataset, COCODatasetBLIP2Captions, COCODatasetVLRMCapt
 from .datasets_registry import DatasetRegistry
 from .models import SentenceTransformerModel
 from .models_registry import ModelRegistry
+from .rrf import run_rrf
 
 __all__ = [
     "list_datasets",
@@ -24,6 +25,7 @@ __all__ = [
     "load_model",
     "run_benchmark",
     "run_benchmark_bm25",
+    "run_rrf",
     "visualize_retrieval",
     "visualize_ground_truth",
 ]
