@@ -8,13 +8,15 @@ from rich.table import Table
 from .core import load_dataset
 
 
-def run_rrf(results_list: list, dataset: str, top_k: int = 10) -> pd.DataFrame:
+def run_rrf(
+    results_list: list[pd.DataFrame], dataset: str, top_k: int = 10
+) -> pd.DataFrame:
     """
     Combines multiple retrieval results using Reciprocal Rank Fusion algorithm.
 
     Args:
         results_list: List of DataFrames containing retrieval results
-        dataset: Dataset containing image mappings
+        dataset: Dataset supported by xretrieval. Run `xretrieval.list_datasets()` to see available datasets.
         top_k: Number of top results to retrieve
 
     Returns:
@@ -85,7 +87,6 @@ def run_rrf(results_list: list, dataset: str, top_k: int = 10) -> pd.DataFrame:
         axis=1,
     )
 
-    # Calculate metrics using torchmetrics
     matches = np.array(new_df["is_correct"].tolist())
     matches = torch.tensor(matches, dtype=torch.float16)
     targets = torch.ones(matches.shape)
@@ -93,12 +94,6 @@ def run_rrf(results_list: list, dataset: str, top_k: int = 10) -> pd.DataFrame:
         torch.arange(matches.shape[0]).view(-1, 1)
         * torch.ones(1, matches.shape[1]).long()
     )
-
-    # Add debug prints
-    print(f"Matches shape: {matches.shape}")
-    print(f"Top-k value: {top_k}")
-    print(f"Number of positive matches: {matches.sum().item()}")
-    print(f"Sample of matches:\n{matches[:5]}")
 
     metrics = [
         torchmetrics.retrieval.RetrievalMRR(),
