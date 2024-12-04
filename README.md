@@ -152,3 +152,5 @@ Run hybrid search with Reciprocal Rank Fusion (RRF):
 ```python
 results_df = xretrieval.run_rrf([results_df, results_df], "coco-val-2017")
 ```
+
+See [RRF notebook](nbs/rrf.ipynb) for more details.
